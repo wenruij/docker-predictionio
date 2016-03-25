@@ -1,0 +1,61 @@
+FROM ubuntu:14.04
+MAINTAINER Wenrui Jiang <wenruij@gmail.com>
+
+# Install Java.
+RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y python-software-properties software-properties-common && \
+  echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
+  add-apt-repository -y ppa:webupd8team/java && \
+  apt-get update && \
+  apt-get install -y oracle-java8-installer && \
+  apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
+  rm -rf /var/cache/oracle-jdk8-installer
+
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
+ENV PIO_HOME /opt/PredictionIO-PIO_VERSION
+ENV PATH=${PIO_HOME}/bin:$PATH
+
+# Libs for Spark MLlib and Python SDK
+RUN apt-get -y update && \
+  	DEBIAN_FRONTEND=noninteractive apt-get install -y curl libgfortran3 python-pip && \
+  	pip install predictionio && \
+  	apt-get clean && \
+  	rm -rf /var/lib/apt/lists/*
+
+# Install PredictionIO
+RUN curl -O https://d8k1yxp8elc6b.cloudfront.net/PredictionIO-PIO_VERSION.tar.gz && \
+    tar -xvzf PredictionIO-PIO_VERSION.tar.gz -C /opt && mkdir -p ${PIO_HOME}/vendors \
+    rm -f PredictionIO-PIO_VERSION.tar.gz
+# config PIO
+ADD pio-env.sh ${PIO_HOME}/conf/pio-env.sh
+
+# Prepare spark libs for predictionIO
+RUN curl -O http://d3kbcqa49mib13.cloudfront.net/spark-SPARK_VERSION.tgz
+    tar -xvzf spark-SPARK_VERSION.tgz -C ${PIO_HOME}/vendors
+    rm -f spark-SPARK_VERSION.tgz
+
+# Install elasticsearch for meta data repository
+RUN curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-ES_VERSION.tar.gz && \
+    tar -xvzf elasticsearch-ES_VERSION.tar.gz -C ${PIO_HOME}/vendors && \
+    rm -f elasticsearch-ES_VERSION.tar.gz && \
+    echo 'cluster.name: predictionio' >> ${PIO_HOME}/vendors/elasticsearch-ES_VERSION/config/elasticsearch.yml && \
+    echo 'network.host: 127.0.0.1' >> ${PIO_HOME}/vendors/elasticsearch-ES_VERSION/config/elasticsearch.yml
+
+RUN curl -O http://archive.apache.org/dist/hbase/hbase-HBASE_VERSION/hbase-HBASE_VERSION-bin.tar.gz && \
+	tar -xvzf hbase-HBASE_VERSION-bin.tar.gz -C ${PIO_HOME}/vendors && \
+	rm hbase-HBASE_VERSION-bin.tar.gz
+ADD hbase-site.xml ${PIO_HOME}/vendors/hbase-HBASE_VERSION/conf/hbase-site.xml
+RUN sed -i "s|VAR_PIO_HOME|${PIO_HOME}|" ${PIO_HOME}/vendors/hbase-HBASE_VERSION/conf/hbase-site.xml && \
+	sed -i "s|VAR_HBASE_VERSION|HBASE_VERSION|" ${PIO_HOME}/vendors/hbase-HBASE_VERSION/conf/hbase-site.xml
+
+# Triggers fetching the complete sbt environment
+RUN ${PIO_HOME}/sbt/sbt -batch
+
+# the deployed engine binds to 8000 by default. 7070 is the default listening port of Event Server
+EXPOSE 8000 7070
+
+COPY run.sh /opt/run.sh
+RUN chmod +x /opt/run.sh
+
+ENTRYPOINT ["/opt/run.sh"]
