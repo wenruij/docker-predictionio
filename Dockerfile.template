@@ -42,7 +42,7 @@ RUN curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elast
     echo 'cluster.name: predictionio' >> ${PIO_HOME}/vendors/elasticsearch-ES_VERSION/config/elasticsearch.yml && \
     echo 'network.host: 127.0.0.1' >> ${PIO_HOME}/vendors/elasticsearch-ES_VERSION/config/elasticsearch.yml
 
-RUN curl -O http://archive.apache.org/dist/hbase/hbase-HBASE_VERSION/hbase-HBASE_VERSION-bin.tar.gz && \
+RUN curl -O http://archive.apache.org/dist/hbase/HBASE_VERSION/hbase-HBASE_VERSION-bin.tar.gz && \
 	tar -xvzf hbase-HBASE_VERSION-bin.tar.gz -C ${PIO_HOME}/vendors && \
 	rm hbase-HBASE_VERSION-bin.tar.gz
 ADD hbase-site.xml ${PIO_HOME}/vendors/hbase-HBASE_VERSION/conf/hbase-site.xml
@@ -53,7 +53,7 @@ RUN ${PIO_HOME}/sbt/sbt -batch
 # the deployed engine binds to 8000 by default. 7070 is the default listening port of Event Server
 EXPOSE 8000 7070
 
-COPY run.sh /opt/run.sh
-RUN chmod +x /opt/run.sh
+COPY entrypoint.sh /opt/entrypoint.sh
+RUN chmod +x /opt/entrypoint.sh
 
-ENTRYPOINT ["/opt/run.sh"]
+ENTRYPOINT ["/opt/entrypoint.sh"]

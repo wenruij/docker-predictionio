@@ -2,10 +2,38 @@
 
 # entrypoint for deploying the engine as a service
 
-SPARK_MASTER=$1
-DRIVER_MEM=$2
-EXECUTOR_MEM=$3
-AKKA_FRAMESIZE=$4
+OPTS=`getopt -o m:d:e:a: --long spark-master:,driver-mem:,executor-mem:,akka-framsize: -n 'parse-options' -- "$@"`
+eval set -- "$OPTS"
+
+while true
+do
+    case "$1" in
+        -m | --spark-master )
+            SPARK_MASTER=$2
+            shift 2
+            ;;
+        -d | --driver-mem )
+            DRIVER_MEM=$2
+            shift 2
+            ;;
+        -e | --executor-mem )
+            EXECUTOR_MEM=$2
+            shift 2
+            ;;
+        -a | --akka-framsize )
+            AKKA_FRAMESIZE=$2
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Please offering right options like --spark-master, --driver-mem, --executor-mem, --akka-framsize"
+            exit 1
+            ;;
+    esac
+done
 
 pio-start-all
 cd /PIOEngine
