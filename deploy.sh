@@ -63,7 +63,7 @@ function build() {
 	fi
 	docker build -t ${USER}/${PROJECT}:${PIO_VERSION} .
 	docker tag ${USER}/${PROJECT}:${PIO_VERSION} ${USER}/${PROJECT}:latest
-	# rm -f Dockerfile pio-env.sh hbase-site.xml entrypoint.sh
+	rm -f Dockerfile pio-env.sh hbase-site.xml entrypoint.sh
 }
 
 function run() {

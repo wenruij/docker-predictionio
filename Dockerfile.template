@@ -25,14 +25,14 @@ RUN apt-get -y update && \
 
 # Install PredictionIO
 RUN curl -O https://d8k1yxp8elc6b.cloudfront.net/PredictionIO-PIO_VERSION.tar.gz && \
-    tar -xvzf PredictionIO-PIO_VERSION.tar.gz -C /opt && mkdir -p ${PIO_HOME}/vendors \
+    tar -xvzf PredictionIO-PIO_VERSION.tar.gz -C /opt && mkdir -p ${PIO_HOME}/vendors && \
     rm -f PredictionIO-PIO_VERSION.tar.gz
 # config PIO
 ADD pio-env.sh ${PIO_HOME}/conf/pio-env.sh
 
 # Prepare spark libs for predictionIO
-RUN curl -O http://d3kbcqa49mib13.cloudfront.net/spark-SPARK_VERSION.tgz
-    tar -xvzf spark-SPARK_VERSION.tgz -C ${PIO_HOME}/vendors
+RUN curl -O http://d3kbcqa49mib13.cloudfront.net/spark-SPARK_VERSION.tgz && \
+    tar -xvzf spark-SPARK_VERSION.tgz -C ${PIO_HOME}/vendors && \
     rm -f spark-SPARK_VERSION.tgz
 
 # Install elasticsearch for meta data repository
