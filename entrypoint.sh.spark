@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+# entrypoint for deploying the engine as a service
+
+SPARK_MASTER=$1
+DRIVER_MEM=$2
+EXECUTOR_MEM=$3
+AKKA_FRAMESIZE=$4
+
+pio-start-all
+cd /PIOEngine
+pio build --verbose
+pio train -- --master ${SPARK_MASTER} –driver-memory ${DRIVER_MEM} –executor-memory ${EXECUTOR_MEM} --conf spark.akka.frameSize=${AKKA_FRAMESIZE}
+pio deploy -- --master ${SPARK_MASTER} –driver-memory ${DRIVER_MEM} –executor-memory ${EXECUTOR_MEM}

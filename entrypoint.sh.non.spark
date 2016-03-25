@@ -1,0 +1,9 @@
+#!/bin/bash -e
+
+# entrypoint for deploying the engine as a service
+
+pio-start-all
+cd /PIOEngine
+pio build --verbose
+pio train
+pio deploy
